@@ -1,0 +1,13 @@
+{
+  "name": "sk-move",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "py": "fastapi dev apps/ortools/src/index.py"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.29.3"
+}
