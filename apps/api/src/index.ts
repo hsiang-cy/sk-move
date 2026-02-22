@@ -60,7 +60,7 @@ const yoga = createYoga<{ request: Request; env: Bindings }, Context>({
 
     return {
       db: database,
-      user: currentUser,
+      user: currentUser as { account_id: number; account_role: string } | null,
       env: env
     }
   }
