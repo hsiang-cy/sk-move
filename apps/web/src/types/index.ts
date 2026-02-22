@@ -10,7 +10,7 @@ export interface Location {
   latitude: number
   longitude: number
   timeWindows: TimeWindow[]
-  dwellTime: number         // 分鐘
+  dwellTime: number          // 分鐘
   acceptedVehicleTypes: string[] // VehicleType IDs
   cargoDemand: number
 }
@@ -20,7 +20,7 @@ export interface Vehicle {
   name: string
   licensePlate: string
   vehicleTypeId: string
-  distanceLimit: number | null    // null = 無限制
+  distanceLimit: number | null    // null = 無限制（公里）
   workingHoursLimit: number | null // null = 無限制（小時）
   cargoCapacity: number
 }
@@ -28,16 +28,18 @@ export interface Vehicle {
 export interface VehicleType {
   id: string
   name: string
+  capacity: number
 }
 
 export interface LoginCredentials {
-  username: string
+  account: string
   password: string
 }
 
 export interface AuthUser {
   id: string
-  username: string
+  account: string
+  account_role: string
 }
 
 export interface AuthResponse {

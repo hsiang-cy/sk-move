@@ -1,30 +1,38 @@
-import axios from 'axios'
+const BASE = (import.meta.env.VITE_API_BASE_URL ?? '') + '/graphql'
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
+interface GqlResponse<T> {
+  data?: T
+  errors?: Array<{ message: string }>
+}
 
-api.interceptors.request.use((config) => {
+export async function gql<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
   const token = localStorage.getItem('auth_token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
+  const res = await fetch(BASE, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ query, variables }),
+  })
 
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
+  if (!res.ok) {
+    if (res.status === 401) {
       localStorage.removeItem('auth_token')
       window.location.href = '/login'
     }
-    return Promise.reject(error)
-  },
-)
+    throw new Error(`HTTP ${res.status}`)
+  }
 
-export default api
+  const json: GqlResponse<T> = await res.json()
+  if (json.errors?.length) {
+    const msg = json.errors[0].message
+    if (msg === 'Unauthorized') {
+      localStorage.removeItem('auth_token')
+      window.location.href = '/login'
+    }
+    throw new Error(msg)
+  }
+
+  return json.data as T
+}

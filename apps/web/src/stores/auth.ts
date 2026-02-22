@@ -1,32 +1,30 @@
-import { ref, computed } from 'vue'
-import { defineStore } from 'pinia'
+import { create } from 'zustand'
 import { authService } from '@/services/auth'
 import type { AuthUser, LoginCredentials } from '@/types'
 
-export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(localStorage.getItem('auth_token'))
-  const user = ref<AuthUser | null>(null)
+interface AuthState {
+  token: string | null
+  user: AuthUser | null
+  isAuthenticated: boolean
+  login: (credentials: LoginCredentials) => Promise<void>
+  logout: () => void
+}
 
-  const isAuthenticated = computed(() => !!token.value)
+export const useAuthStore = create<AuthState>((set, get) => ({
+  token: localStorage.getItem('auth_token'),
+  user: null,
+  get isAuthenticated() {
+    return !!get().token
+  },
 
-  async function login(credentials: LoginCredentials) {
-    const response = await authService.login(credentials)
-    token.value = response.token
-    user.value = response.user
-    localStorage.setItem('auth_token', response.token)
-  }
+  async login(credentials) {
+    const res = await authService.login(credentials)
+    localStorage.setItem('auth_token', res.token)
+    set({ token: res.token, user: res.user })
+  },
 
-  async function logout() {
-    try {
-      await authService.logout()
-    } catch {
-      // ignore logout errors
-    } finally {
-      token.value = null
-      user.value = null
-      localStorage.removeItem('auth_token')
-    }
-  }
-
-  return { token, user, isAuthenticated, login, logout }
-})
+  logout() {
+    localStorage.removeItem('auth_token')
+    set({ token: null, user: null })
+  },
+}))
